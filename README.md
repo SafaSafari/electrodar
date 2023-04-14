@@ -34,7 +34,7 @@
 
 `cd electrodar`
 
-pip install -r ./requirements.txt`
+`pip install -r ./requirements.txt`
 
 در صورتی که پیش نیاز ها با موفقیت نصب شوند، کار تمام است و وقت آن رسیده که برنامه را [اجرا](#اجرای-برنامه) کنید
 
