@@ -1,9 +1,9 @@
 import requests
+import json
 
 class Electro:
     def publicInfo(self):
-        return requests.get(
-            "https://elcdn.ir/app/vpn/t-wireguard.json", headers={"user-agent": ""}).json()
+        return json.loads(requests.get("https://elcdn.ir/app/vpn/t-wireguard.json", headers={"user-agent": ""}).content.decode().replace("\n", ""))
 
     def privateInfo(self):
         return requests.get("https://wg.elcdn.ir/getWGKey", headers={"user-agent": ""}).json()

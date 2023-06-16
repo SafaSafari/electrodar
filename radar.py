@@ -1,22 +1,38 @@
 import requests
+import sys
 
 
-class Regions:
-    Tehran = "tehran"
-    Tabriz = "tabriz"
-    Mashhad = "mashhad"
-    Isfahan = "isfahan"
-    Ahvaz = "ahvaz"
+def ss_input(prompt, default='', t=int):
+    result = input('{}{}: '.format(
+        prompt, (" [" + str(default) + "] (Enter for default)") if str(default) != '' else ''))
+    if result == '':
+        return default
+    else:
+        return t(result)
+
 
 class Radar:
-    def publicInfo(self, region: Regions = Regions.Tehran):
+
+    def run(self):
+        l = self.getList()
+        for k, v in enumerate(l):
+            print("{}. {}".format(k + 1, v['loc']))
+        server = l[ss_input("Please select server", 1) - 1]
+        self.url = server['domain']
+        self.dns = ','.join(server['dns'])
+        print(self.genConfig())
+
+    def getList(self):
+        return requests.get("https://gw.radar.game/list", headers={"User-Agent": ""}).json()['result']
+
+    def publicInfo(self):
         return requests.get(
-            "https://cdn.radar.game/app/vpn/{}wireguard.json".format(region), headers={"user-agent": ""}).json()
+            "https://gw.radar.game/getSettings", headers={"User-Agent": ""}).json()
 
-    def privateInfo(self, region: Regions = Regions.Tehran):
-        return requests.get("https://{}wg.radar.game/getWGKey".format(region), headers={"user-agent": ""}).json()
+    def privateInfo(self):
+        return requests.get(self.url, headers={"User-Agent": ""}).json()
 
-    def genConfig(self, region: Regions = Regions.Tehran, route=False):
+    def genConfig(self, route=False):
         base = """[Interface]
 PrivateKey = {private}
 Address = {address}
@@ -28,14 +44,14 @@ PresharedKey = {psk}
 Endpoint = {endpoint}
 AllowedIPs = {route}
 """
-        public = self.publicInfo(region)
-        private = self.privateInfo(region)
-        base = base.format(public=public['publickey'], endpoint=public['endpoint'], dns=public['dns'], route="0.0.0.0/0" if route else public['routes'], psk=private['psk'], private=private['private_key'], address=private['ip'])
-        return base
+        public = self.publicInfo()
+        private = self.privateInfo()
+        base = base.format(public=private['result']['settings']['public_key'], endpoint=private['result']['settings']['endpoint'], dns=self.dns,
+                           route="0.0.0.0/0" if route else public['result']['routes'], psk=private['result']['psk'], private=private['result']['private_key'], address=private['result']['ip'])
+        with open(private['result']['uid'] + ".conf", 'w') as f:
+            f.write(base)
+            return "Conf file saved successfully: {}".format(f.name)
 
-r = Radar()
-for region in Regions.__dict__.values():
-    if region[:2] == '__':
-        continue
-    print(region)
-    print(r.genConfig(region))
+if __name__ == '__main__':
+    r = Radar()
+    r.run()
