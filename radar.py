@@ -1,5 +1,4 @@
 import requests
-import sys
 
 
 def ss_input(prompt, default='', t=int):
@@ -20,7 +19,7 @@ class Radar:
         server = l[ss_input("Please select server", 1) - 1]
         self.url = server['domain']
         self.dns = ','.join(server['dns'])
-        print(self.genConfig())
+        print(self.genConfig(True))
 
     def getList(self):
         return requests.get("https://gw.radar.game/list", headers={"User-Agent": ""}).json()['result']
